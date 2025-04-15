@@ -179,7 +179,7 @@ int main() {
         sfRenderWindow_drawCircleShape(window, pacmanBody, NULL);
         sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
         sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
-        sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);
+        if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
         sfRenderWindow_display(window);
     }
     return 0;
