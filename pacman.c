@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <SFML/Graphics.h>
 
+// Simple Pacman structure
+struct Pacman {
+    int x;
+    int y;
+    int direction; // 0 = right, 1 = down, 2 = left, 3 = up
+    int lives;
+    int score;
+};
 
 const int HEIGHT = 22;
 const int WIDTH = 19;
@@ -50,13 +58,69 @@ int main() {
     sfCircleShape *powerup = sfCircleShape_create();
     sfCircleShape_setRadius(powerup, (float)(SCALE / 5));
 
+    //intialize Pacman character
+    struct Pacman player;
+    player.x = 9;
+    player.y = 16;
+    player.direction = 0; // Right
+    player.lives = 3;
+    player.score = 0;
+
+    // Create Pacman shape
+    //
+    //
+
     while (sfRenderWindow_isOpen(window)) {
         sfEvent event;
         while (sfRenderWindow_pollEvent(window, &event)) {
             if (event.type == sfEvtClosed) {
                 sfRenderWindow_close(window);
             }
+
+            //input handling
+            if (event.type == sfEvtKeyPressed) {
+                switch (event.key.code) {
+                    case sfKeyUp:
+                        player.direction = 3;
+                        break;
+                    case sfKeyDown:
+                        player.direction = 1;
+                        break;
+                    case sfKeyLeft:
+                        player.direction = 2;
+                        break;
+                    case sfKeyRight:
+                        player.direction = 0;
+                        break;
+                }
+            }
         }
+
+        // Move Pacman based on direction
+        int nextX = player.x;
+        int nextY = player.y;
+
+        // Determine next position based on direction
+        switch (player.direction) {
+            case 0:  // Right
+                nextX++;
+                break;
+            case 1:  // Down
+                nextY++;
+                break;
+            case 2:  // Left
+                nextX--;
+                break;
+            case 3:  // Up
+                nextY--;
+                break;
+        }
+
+        // Check if next position is valid (not a wall) before moving Pacman there
+        if (nextX >= 0 && nextX < WIDTH && nextY >= 0 && nextY < HEIGHT && map[nextY][nextX] != 4) {
+            player.x = (float)nextX;
+            player.y = (float)nextY;
+            
         sfRenderWindow_clear(window, sfBlack);
         //Draw Map
         for (int y = 0; y < HEIGHT; y++) {
