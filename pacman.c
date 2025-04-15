@@ -59,8 +59,8 @@ int main() {
         }
         sfRenderWindow_clear(window, sfBlack);
         //Draw Map
-        for (int y = 0; y < 36; y++) {
-            for (int x = 0; x < 20; x++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
                 int value = map[y][x];
                 if (value == 4) {
                     sfRectangleShape_setPosition(wall, (sfVector2f){x * SCALE, y * SCALE});
