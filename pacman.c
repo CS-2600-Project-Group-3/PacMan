@@ -120,13 +120,15 @@ int main() {
             // Determine next position based on direction
             switch (player.direction) {
                 case 0:  // Right
-                    nextX++;
+                    if (player.x == WIDTH - 1) {nextX = 0;}
+                    else {nextX++;}
                     break;
                 case 1:  // Down
                     nextY++;
                     break;
                 case 2:  // Left
-                    nextX--;
+                    if (player.x == 0) {nextX = WIDTH - 1;}
+                    else {nextX--;}
                     break;
                 case 3:  // Up
                     nextY--;
@@ -135,9 +137,17 @@ int main() {
 
             // Check if next position is valid (not a wall) before moving Pacman there
             if (nextX >= 0 && nextX < WIDTH && nextY >= 0 && nextY < HEIGHT && map[nextY][nextX] != 4) {
-                player.x = (float)nextX;
-                player.y = (float)nextY;
-                // Eat pellet
+                player.x = nextX;
+                player.y = nextY;
+            }
+
+            // Check if pac-man is on a pellet or powerup, and eat it
+            if (map[player.y][player.x] == 2) {
+                player.score += 10;
+                map[player.y][player.x] = 1;
+            }
+            else if (map[player.y][player.x] == 3) {
+                player.score += 50;
                 map[player.y][player.x] = 1;
             }
 
@@ -168,22 +178,7 @@ int main() {
         sfCircleShape_setPosition(pacmanBody, (sfVector2f){player.x * SCALE, player.y * SCALE});
         sfRenderWindow_drawCircleShape(window, pacmanBody, NULL);
         sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
-        float mouthRotation;
-        switch (player.direction) {
-            case 0:  // Right
-                mouthRotation = 0;
-                break;
-            case 1:  // Down
-                mouthRotation = 90;
-                break;
-            case 2:  // Left
-                mouthRotation = 180;
-                break;
-            case 3:  // Up
-                mouthRotation = 270;
-                break;
-        }
-        sfConvexShape_setRotation(pacmanMouth, mouthRotation);
+        sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
         sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);
         sfRenderWindow_display(window);
     }
