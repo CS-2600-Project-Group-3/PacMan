@@ -5,4 +5,5 @@ pacmanMac:
 testMac:
 	gcc test.c -I/usr/local/Cellar/csfml/2.6.1_1/include -L/usr/local/Cellar/csfml/2.6.1_1/lib -lcsfml-graphics -lcsfml-window -lcsfml-system -o test
 
-# Windows users
+# Windows users: in terminal type "sudo apt install libcsfml-*" to install CSFML on Ubuntu.
+
