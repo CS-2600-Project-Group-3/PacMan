@@ -1,5 +1,9 @@
+.vscode/
+CSFML/
+SFML/
 pacman
 test
 .DS_Store
 *.exe
+*.dll
 makefile

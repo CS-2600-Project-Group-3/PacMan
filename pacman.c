@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <SFML/Graphics.h>
+//#include "c:/MYDOWNLOADS/Coding/000 Scripts and Files/CS 2600/Pacman/CSFML/include/SFML/Graphics.h"
 
 // Simple Pacman structure
 struct Pacman {
@@ -10,8 +11,10 @@ struct Pacman {
     int score;
 };
 
-const int HEIGHT = 22;
-const int WIDTH = 19;
+enum MapDimensions {
+    HEIGHT = 22,
+    WIDTH =19
+};
 const int SCALE = 20;
 
 // 1 = Nothing, 2 = Dot, 3 = Power Up, 4 = Wall, 5 = Ghost Home
@@ -44,7 +47,7 @@ int main() {
     //Create window
     sfVideoMode mode = {WIDTH * SCALE, HEIGHT * SCALE, 32};
     sfRenderWindow *window = sfRenderWindow_create(mode, "Pac Man", sfResize | sfClose, NULL);
-    sfWindow_setFramerateLimit(window, 60);
+    sfRenderWindow_setFramerateLimit(window, 60);
 
     //Create clock
     sfClock *clock = sfClock_create();
