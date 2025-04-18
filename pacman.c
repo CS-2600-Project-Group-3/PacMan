@@ -11,6 +11,15 @@ struct Pacman {
     int score;
 };
 
+// Ghost Structure
+struct Ghost {
+    int x;
+    int y;
+    int direction; // 0 = right, 1 = down, 2 = left, 3 = up
+    int status; // 0 = aggressive, 1 = afraid, 2 = running
+    char color; // r = red, b = blue, p = pink, o = orange
+};
+
 enum MapDimensions {
     HEIGHT = 22,
     WIDTH =19
@@ -84,6 +93,27 @@ int main() {
     sfConvexShape_setPoint(pacmanMouth, 1, (sfVector2f){SCALE / 2, -SCALE / 2});
     sfConvexShape_setPoint(pacmanMouth, 2, (sfVector2f){SCALE / 2, SCALE / 2});
     sfConvexShape_setFillColor(pacmanMouth, sfBlack);
+
+    // Initialize ghosts
+    struct Ghost ghosts[4] = {
+        {9, 9, 0, 0, 'r'},
+        {8, 10, 0, 0, 'b'},
+        {9, 10, 0, 0, 'p'},
+        {10, 10, 0, 0, 'o'}
+    };
+
+    // Create ghost shapes
+    sfConvexShape *ghostBody = sfConvexShape_create();
+    sfConvexShape_setPointCount(ghostBody, 9);
+    sfConvexShape_setPoint(ghostBody, 0, (sfVector2f){SCALE / 4, 0});
+    sfConvexShape_setPoint(ghostBody, 1, (sfVector2f){SCALE * 3 / 4, 0});
+    sfConvexShape_setPoint(ghostBody, 2, (sfVector2f){SCALE, SCALE / 4});
+    sfConvexShape_setPoint(ghostBody, 3, (sfVector2f){SCALE, SCALE});
+    sfConvexShape_setPoint(ghostBody, 4, (sfVector2f){SCALE * 3 / 4, SCALE * 3 / 4});
+    sfConvexShape_setPoint(ghostBody, 5, (sfVector2f){SCALE /2, SCALE});
+    sfConvexShape_setPoint(ghostBody, 6, (sfVector2f){SCALE / 4, SCALE * 3 / 4});
+    sfConvexShape_setPoint(ghostBody, 7, (sfVector2f){0, SCALE});
+    sfConvexShape_setPoint(ghostBody, 8, (sfVector2f){0, SCALE / 4});
 
     // Initialize pellet counter
     int pelletCount = 0;
@@ -166,11 +196,6 @@ int main() {
                 map[player.y][player.x] = 1;
             }
 
-            // Check for game end
-            if (pelletCount == 0) {
-                sfRenderWindow_close(window);
-            }
-
             sfClock_restart(clock);
         }
             
@@ -200,7 +225,36 @@ int main() {
         sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
         sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
         if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
+
+        //Draw Ghosts
+        for (int i = 0; i < 4; i++) {
+            switch (ghosts[i].color) {
+            case 'r':
+                sfConvexShape_setFillColor(ghostBody, sfRed);
+                break;
+            case 'b':
+                sfConvexShape_setFillColor(ghostBody, (sfColor){144, 213, 255, 255});
+                break;
+            case 'p':
+                sfConvexShape_setFillColor(ghostBody, (sfColor){255, 182, 193, 255});
+                break;
+            case 'o':
+                sfConvexShape_setFillColor(ghostBody, (sfColor){255, 165, 0, 255});
+                break;
+            default:
+                break;
+            }
+
+            sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
+            sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
+        }
+
         sfRenderWindow_display(window);
+
+        // Check for game end
+        if (pelletCount == 0) {
+            sfRenderWindow_close(window);
+        }
     }
     return 0;
 }
