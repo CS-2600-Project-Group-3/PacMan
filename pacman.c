@@ -85,6 +85,16 @@ int main() {
     sfConvexShape_setPoint(pacmanMouth, 2, (sfVector2f){SCALE / 2, SCALE / 2});
     sfConvexShape_setFillColor(pacmanMouth, sfBlack);
 
+    // Initialize pellet counter
+    int pelletCount = 0;
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+            if (map[i][j] == 2 || map[i][j] == 3) {
+                pelletCount++;
+            }
+        }
+    }
+
     while (sfRenderWindow_isOpen(window)) {
         sfEvent event;
         while (sfRenderWindow_pollEvent(window, &event)) {
@@ -147,11 +157,18 @@ int main() {
             // Check if pac-man is on a pellet or powerup, and eat it
             if (map[player.y][player.x] == 2) {
                 player.score += 10;
+                pelletCount--;
                 map[player.y][player.x] = 1;
             }
             else if (map[player.y][player.x] == 3) {
                 player.score += 50;
+                pelletCount--;
                 map[player.y][player.x] = 1;
+            }
+
+            // Check for game end
+            if (pelletCount == 0) {
+                sfRenderWindow_close(window);
             }
 
             sfClock_restart(clock);
