@@ -131,6 +131,11 @@ int main() {
     sfConvexShape_setPoint(ghostBody, 6, (sfVector2f){SCALE / 4, SCALE * 3 / 4});
     sfConvexShape_setPoint(ghostBody, 7, (sfVector2f){0, SCALE});
     sfConvexShape_setPoint(ghostBody, 8, (sfVector2f){0, SCALE / 4});
+    sfCircleShape *ghostEye = sfCircleShape_create();
+    sfCircleShape_setRadius(ghostEye, (float)(SCALE / 4));
+    sfCircleShape *ghostPupil = sfCircleShape_create();
+    sfCircleShape_setRadius(ghostPupil, (float)(SCALE / 8));
+    sfCircleShape_setFillColor(ghostPupil, sfBlack);
 
     // Initialize pellet counter
     int pelletCount = 0;
@@ -323,6 +328,35 @@ int main() {
             }
             sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
             sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
+            sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE / 6});
+            sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
+            sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE + SCALE / 2, ghosts[i].y * SCALE + SCALE / 6});
+            sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
+            sfVector2f leftEyeDirection;
+            sfVector2f rightEyeDirection;
+            switch(ghosts[i].direction) {
+                case 0:
+                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.3, ghosts[i].y * SCALE + SCALE * 0.3};
+                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.8, ghosts[i].y * SCALE + SCALE * 0.3};
+                    break;
+                case 1:
+                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.45};
+                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.45};
+                    break;
+                case 2:
+                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE * 0.3};
+                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.5, ghosts[i].y * SCALE + SCALE * 0.3};
+                    break;
+                default:
+                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.15};
+                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.15};
+                    break;
+            }
+            sfCircleShape_setPosition(ghostPupil, leftEyeDirection);
+            sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
+            sfCircleShape_setPosition(ghostPupil, rightEyeDirection);
+            sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
+
         }
 
         // Update window
