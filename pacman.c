@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <SFML/Graphics.h>
 //#include "c:/MYDOWNLOADS/Coding/000 Scripts and Files/CS 2600/Pacman/CSFML/include/SFML/Graphics.h"
 
@@ -52,6 +54,18 @@ int map[HEIGHT][WIDTH] = {
     {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}
 };
 
+int getNextX(int direction, int x) {
+    return (WIDTH + (x - ((direction - 1) % 2))) % WIDTH;
+};
+
+int getNextY(int direction, int y) {
+    return y + ((2 - direction) % 2);
+}
+
+int rotate(int direction, int clockwiseSteps) {
+    return (4 + direction + clockwiseSteps) % 4;
+}
+
 int main() {
     //Create window
     sfVideoMode mode = {WIDTH * SCALE, HEIGHT * SCALE, 32};
@@ -60,6 +74,9 @@ int main() {
 
     //Create clock
     sfClock *clock = sfClock_create();
+
+    //Generate RNG seed
+    srand(time(NULL));
 
     //Create rectangle for walls
     sfRectangleShape *wall = sfRectangleShape_create();
@@ -79,7 +96,7 @@ int main() {
     struct Pacman player;
     player.x = 9;
     player.y = 16;
-    player.direction = 0; // Right
+    player.direction = 1; // Down
     player.lives = 3;
     player.score = 0;
 
@@ -184,7 +201,65 @@ int main() {
                 player.y = nextY;
             }
 
-            // Check if pac-man is on a pellet or powerup, and eat it
+            // Check if pac-man is on a ghost
+            for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                if (player.x == ghosts[i].x && player.y == ghosts[i].y) {
+                    player.lives -= 1;
+                    player.x = 9;
+                    player.y = 16;
+                    player.direction = 1;
+                }
+            }
+
+            // Move Ghosts
+            for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                struct Ghost *ghost;
+                ghost = &ghosts[i];
+                int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
+                int numValidDirs = 0;
+
+                // Populate validDirs
+                for (int i = 0; i < sizeof(validDirs) / sizeof(validDirs[0]); i++) {
+                    if (map[getNextY(rotate(ghost->direction, i - 1), ghost->y)][getNextX(rotate(ghost->direction, i - 1), ghost->x)] != 4) {
+                        validDirs[numValidDirs] = i - 1;
+                        numValidDirs++;
+                    }
+                }
+
+                // If left and right side have walls
+                if (map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
+                    map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
+                    
+                    // If front has a wall
+                    if (map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
+
+                        // Change direction to back
+                        ghost->direction = rotate(ghost->direction, 2);
+                    }
+                }
+
+                // If at an intersection
+                else {
+                    // Pick random valid direction
+                    ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
+                }
+
+                // Move ghost in direction
+                ghost->x = getNextX(ghost->direction, ghost->x);
+                ghost->y = getNextY(ghost->direction, ghost->y);
+                
+                // Check if pac-man is on a ghost
+                for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                    if (player.x == ghosts[i].x && player.y == ghosts[i].y) {
+                        player.lives -= 1;
+                        player.x = 9;
+                        player.y = 16;
+                        player.direction = 1;
+                    }
+                }
+            }
+
+            // Check if pac-man is on a pellet or powerup
             if (map[player.y][player.x] == 2) {
                 player.score += 10;
                 pelletCount--;
@@ -199,7 +274,9 @@ int main() {
             sfClock_restart(clock);
         }
             
+        // Clear window
         sfRenderWindow_clear(window, sfBlack);
+        
         //Draw Map
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
@@ -227,7 +304,7 @@ int main() {
         if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
 
         //Draw Ghosts
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
             switch (ghosts[i].color) {
             case 'r':
                 sfConvexShape_setFillColor(ghostBody, sfRed);
@@ -244,11 +321,11 @@ int main() {
             default:
                 break;
             }
-
             sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
             sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
         }
 
+        // Update window
         sfRenderWindow_display(window);
 
         // Check for game end
