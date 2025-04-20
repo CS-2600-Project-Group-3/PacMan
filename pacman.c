@@ -171,26 +171,78 @@ int main() {
                 sfRenderWindow_close(window);
             }
 
-            //input handling
+            // state transition handling (use space)
             if (event.type == sfEvtKeyPressed) {
-                switch (event.key.code) {
-                    case sfKeyUp:
-                        player.direction = 3;
+               if (event.key.code == sfKeySpace) {
+                switch (gameState) {
+                    case GAME_START:
+                        gameState = GAME_PLAYING;
                         break;
-                    case sfKeyDown:
+                    case GAME_PAUSED:
+                        gameState = GAME_PLAYING;
+                        break;
+                    case GAME_PLAYING:
+                        gameState = GAME_PAUSED;
+                        break;
+                    case GAME_OVER:
+                    case GAME_WIN:
+                        // Reset game
+                        player.lives = 3;
+                        player.score = 0;
+                        player.x = 9;
+                        player.y = 16;
                         player.direction = 1;
+                        
+                        // Reset ghosts
+                        ghosts[0] = (struct Ghost){9, 9, 0, 0, 'r'};
+                        ghosts[1] = (struct Ghost){8, 10, 0, 0, 'b'};
+                        ghosts[2] = (struct Ghost){9, 10, 0, 0, 'p'};
+                        ghosts[3] = (struct Ghost){10, 10, 0, 0, 'o'};
+
+                        pelletCount = 0;
+                        for (int i = 0; i < HEIGHT; i++) {
+                            for (int j = 0; j < WIDTH; j++) {
+                                if (map[i][j] == 1) {
+                                    // Check original map layout to restore pellets
+                                    if ((i == 1 && (j == 1 || j == 17)) || 
+                                        (i == 20 && (j == 1 || j == 17))) {
+                                        map[i][j] = 3; // Power pellet
+                                        pelletCount++;
+                                    } else if ((i != 9 && i != 10 && i != 11) || 
+                                                (j < 8 || j > 10)) {
+                                        map[i][j] = 2; // Regular pellet
+                                        pelletCount++;
+                                    }
+                                }
+                            }
+                        }
+                        gameState = GAME_START;
                         break;
-                    case sfKeyLeft:
-                        player.direction = 2;
-                        break;
-                    case sfKeyRight:
-                        player.direction = 0;
-                        break;
-                    default:
-                        break;
+                    }
                 }
-            }
+
+                //input handling movemennt only during playing state
+                if (gameState == GAME_PLAYING) {
+                    switch (event.key.code) {
+                        case sfKeyUp:
+                            player.direction = 3;
+                            break;
+                        case sfKeyDown:
+                            player.direction = 1;
+                            break;
+                        case sfKeyLeft:
+                            player.direction = 2;
+                            break;
+                        case sfKeyRight:
+                            player.direction = 0;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }  
         }
+        
 
         sfTime time = sfClock_getElapsedTime(clock);
         float seconds = sfTime_asSeconds(time);
@@ -318,63 +370,65 @@ int main() {
             }
         }
 
-        //Draw Pac Man
-        sfCircleShape_setPosition(pacmanBody, (sfVector2f){player.x * SCALE, player.y * SCALE});
-        sfRenderWindow_drawCircleShape(window, pacmanBody, NULL);
-        sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
-        sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
-        if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
+        if (gameState != GAME_START) {
+            //Draw Pac Man
+            sfCircleShape_setPosition(pacmanBody, (sfVector2f){player.x * SCALE, player.y * SCALE});
+            sfRenderWindow_drawCircleShape(window, pacmanBody, NULL);
+            sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
+            sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
+            if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
 
-        //Draw Ghosts
-        for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
-            switch (ghosts[i].color) {
-            case 'r':
-                sfConvexShape_setFillColor(ghostBody, sfRed);
-                break;
-            case 'b':
-                sfConvexShape_setFillColor(ghostBody, (sfColor){144, 213, 255, 255});
-                break;
-            case 'p':
-                sfConvexShape_setFillColor(ghostBody, (sfColor){255, 182, 193, 255});
-                break;
-            case 'o':
-                sfConvexShape_setFillColor(ghostBody, (sfColor){255, 165, 0, 255});
-                break;
-            default:
-                break;
-            }
-            sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
-            sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
-            sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE / 6});
-            sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
-            sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE + SCALE / 2, ghosts[i].y * SCALE + SCALE / 6});
-            sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
-            sfVector2f leftEyeDirection;
-            sfVector2f rightEyeDirection;
-            switch(ghosts[i].direction) {
-                case 0:
-                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.3, ghosts[i].y * SCALE + SCALE * 0.3};
-                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.8, ghosts[i].y * SCALE + SCALE * 0.3};
+            //Draw Ghosts
+            for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                switch (ghosts[i].color) {
+                case 'r':
+                    sfConvexShape_setFillColor(ghostBody, sfRed);
                     break;
-                case 1:
-                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.45};
-                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.45};
+                case 'b':
+                    sfConvexShape_setFillColor(ghostBody, (sfColor){144, 213, 255, 255});
                     break;
-                case 2:
-                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE * 0.3};
-                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.5, ghosts[i].y * SCALE + SCALE * 0.3};
+                case 'p':
+                    sfConvexShape_setFillColor(ghostBody, (sfColor){255, 182, 193, 255});
+                    break;
+                case 'o':
+                    sfConvexShape_setFillColor(ghostBody, (sfColor){255, 165, 0, 255});
                     break;
                 default:
-                    leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.15};
-                    rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.15};
                     break;
+                }
+                sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
+                sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
+                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE / 6});
+                sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
+                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE + SCALE / 2, ghosts[i].y * SCALE + SCALE / 6});
+                sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
+                sfVector2f leftEyeDirection;
+                sfVector2f rightEyeDirection;
+                switch(ghosts[i].direction) {
+                    case 0:
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.3, ghosts[i].y * SCALE + SCALE * 0.3};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.8, ghosts[i].y * SCALE + SCALE * 0.3};
+                        break;
+                    case 1:
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.45};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.45};
+                        break;
+                    case 2:
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE * 0.3};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.5, ghosts[i].y * SCALE + SCALE * 0.3};
+                        break;
+                    default:
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.15};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.15};
+                        break;
+                }
+                sfCircleShape_setPosition(ghostPupil, leftEyeDirection);
+                sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
+                sfCircleShape_setPosition(ghostPupil, rightEyeDirection);
+                sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
             }
-            sfCircleShape_setPosition(ghostPupil, leftEyeDirection);
-            sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
-            sfCircleShape_setPosition(ghostPupil, rightEyeDirection);
-            sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
-
         }
+    
 
         // Update window
         sfRenderWindow_display(window);
