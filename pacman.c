@@ -22,6 +22,14 @@ struct Ghost {
     char color; // r = red, b = blue, p = pink, o = orange
 };
 
+enum GameState {
+    GAME_START,
+    GAME_PLAYING,
+    GAME_PAUSED,
+    GAME_OVER,
+    GAME_WIN
+};
+
 enum MapDimensions {
     HEIGHT = 22,
     WIDTH =19
@@ -67,10 +75,19 @@ int rotate(int direction, int clockwiseSteps) {
 }
 
 int main() {
+    enum GameState gameState = GAME_START;
+
     //Create window
     sfVideoMode mode = {WIDTH * SCALE, HEIGHT * SCALE, 32};
     sfRenderWindow *window = sfRenderWindow_create(mode, "Pac Man", sfResize | sfClose, NULL);
     sfRenderWindow_setFramerateLimit(window, 60);
+
+    //for fonts & UI text
+    sfFont* font = sfFont_createFromFile("c:\\Windows\\Fonts\\arial.ttf");
+    sfText* messageText = sfText_create();
+    sfText_setFont(messageText, font);
+    sfText_setCharacterSize(messageText, 24);
+    sfText_setFillColor(messageText, sfWhite);
 
     //Create clock
     sfClock *clock = sfClock_create();
