@@ -78,12 +78,12 @@ int main() {
     enum GameState gameState = GAME_START;
 
     //Create window
-    sfVideoMode mode = {WIDTH * SCALE, HEIGHT * SCALE, 32};
+    sfVideoMode mode = {WIDTH * SCALE, (HEIGHT + 2) * SCALE, 32}; //added more for score text
     sfRenderWindow *window = sfRenderWindow_create(mode, "Pac Man", sfResize | sfClose, NULL);
     sfRenderWindow_setFramerateLimit(window, 60);
 
     //for fonts & UI text
-    sfFont* font = sfFont_createFromFile("c:\\Windows\\Fonts\\arial.ttf");
+    sfFont* font = sfFont_createFromFile("resources/fonts/slkscr.ttf");
     sfText* messageText = sfText_create();
     sfText_setFont(messageText, font);
     sfText_setCharacterSize(messageText, 24);
@@ -243,85 +243,38 @@ int main() {
             }  
         }
         
+        if (gameState == GAME_PLAYING) {
+            sfTime time = sfClock_getElapsedTime(clock);
+            float seconds = sfTime_asSeconds(time);
+            if (seconds >= 0.1) {
+                // Move Pacman based on direction
+                int nextX = player.x;
+                int nextY = player.y;
 
-        sfTime time = sfClock_getElapsedTime(clock);
-        float seconds = sfTime_asSeconds(time);
-        if (seconds >= 0.1) {
-            // Move Pacman based on direction
-            int nextX = player.x;
-            int nextY = player.y;
-
-            // Determine next position based on direction
-            switch (player.direction) {
-                case 0:  // Right
-                    if (player.x == WIDTH - 1) {nextX = 0;}
-                    else {nextX++;}
-                    break;
-                case 1:  // Down
-                    nextY++;
-                    break;
-                case 2:  // Left
-                    if (player.x == 0) {nextX = WIDTH - 1;}
-                    else {nextX--;}
-                    break;
-                case 3:  // Up
-                    nextY--;
-                    break;
-            }
-
-            // Check if next position is valid (not a wall) before moving Pacman there
-            if (nextX >= 0 && nextX < WIDTH && nextY >= 0 && nextY < HEIGHT && map[nextY][nextX] != 4) {
-                player.x = nextX;
-                player.y = nextY;
-            }
-
-            // Check if pac-man is on a ghost
-            for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
-                if (player.x == ghosts[i].x && player.y == ghosts[i].y) {
-                    player.lives -= 1;
-                    player.x = 9;
-                    player.y = 16;
-                    player.direction = 1;
-                }
-            }
-
-            // Move Ghosts
-            for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
-                struct Ghost *ghost;
-                ghost = &ghosts[i];
-                int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
-                int numValidDirs = 0;
-
-                // Populate validDirs
-                for (int i = 0; i < sizeof(validDirs) / sizeof(validDirs[0]); i++) {
-                    if (map[getNextY(rotate(ghost->direction, i - 1), ghost->y)][getNextX(rotate(ghost->direction, i - 1), ghost->x)] != 4) {
-                        validDirs[numValidDirs] = i - 1;
-                        numValidDirs++;
-                    }
+                // Determine next position based on direction
+                switch (player.direction) {
+                    case 0:  // Right
+                        if (player.x == WIDTH - 1) {nextX = 0;}
+                        else {nextX++;}
+                        break;
+                    case 1:  // Down
+                        nextY++;
+                        break;
+                    case 2:  // Left
+                        if (player.x == 0) {nextX = WIDTH - 1;}
+                        else {nextX--;}
+                        break;
+                    case 3:  // Up
+                        nextY--;
+                        break;
                 }
 
-                // If left and right side have walls
-                if (map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
-                    map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
-                    
-                    // If front has a wall
-                    if (map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
-
-                        // Change direction to back
-                        ghost->direction = rotate(ghost->direction, 2);
-                    }
+                // Check if next position is valid (not a wall) before moving Pacman there
+                if (nextX >= 0 && nextX < WIDTH && nextY >= 0 && nextY < HEIGHT && map[nextY][nextX] != 4) {
+                    player.x = nextX;
+                    player.y = nextY;
                 }
 
-                // If at an intersection
-                else {
-                    // Pick random valid direction
-                    ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
-                }
-
-                // Move ghost in direction
-                ghost->x = getNextX(ghost->direction, ghost->x);
-                ghost->y = getNextY(ghost->direction, ghost->y);
-                
                 // Check if pac-man is on a ghost
                 for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
                     if (player.x == ghosts[i].x && player.y == ghosts[i].y) {
@@ -331,23 +284,80 @@ int main() {
                         player.direction = 1;
                     }
                 }
-            }
 
-            // Check if pac-man is on a pellet or powerup
-            if (map[player.y][player.x] == 2) {
-                player.score += 10;
-                pelletCount--;
-                map[player.y][player.x] = 1;
-            }
-            else if (map[player.y][player.x] == 3) {
-                player.score += 50;
-                pelletCount--;
-                map[player.y][player.x] = 1;
-            }
+                // Move Ghosts
+                for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                    struct Ghost *ghost;
+                    ghost = &ghosts[i];
+                    int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
+                    int numValidDirs = 0;
 
-            sfClock_restart(clock);
+                    // Populate validDirs
+                    for (int i = 0; i < sizeof(validDirs) / sizeof(validDirs[0]); i++) {
+                        if (map[getNextY(rotate(ghost->direction, i - 1), ghost->y)][getNextX(rotate(ghost->direction, i - 1), ghost->x)] != 4) {
+                            validDirs[numValidDirs] = i - 1;
+                            numValidDirs++;
+                        }
+                    }
+
+                    // If left and right side have walls
+                    if (map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
+                        map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
+                        
+                        // If front has a wall
+                        if (map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
+
+                            // Change direction to back
+                            ghost->direction = rotate(ghost->direction, 2);
+                        }
+                    }
+
+                    // If at an intersection
+                    else {
+                        // Pick random valid direction
+                        ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
+                    }
+
+                    // Move ghost in direction
+                    ghost->x = getNextX(ghost->direction, ghost->x);
+                    ghost->y = getNextY(ghost->direction, ghost->y);
+                    
+                    // Check if pac-man is on a ghost
+                    for (int i = 0; i < sizeof(ghosts) / sizeof(ghosts[0]); i++) {
+                        if (player.x == ghosts[i].x && player.y == ghosts[i].y) {
+                            player.lives -= 1;
+                            player.x = 9;
+                            player.y = 16;
+                            player.direction = 1;
+                        }
+                    }
+                }
+
+                // Check if pac-man is on a pellet or powerup
+                if (map[player.y][player.x] == 2) {
+                    player.score += 10;
+                    pelletCount--;
+                    map[player.y][player.x] = 1;
+                }
+                else if (map[player.y][player.x] == 3) {
+                    player.score += 50;
+                    pelletCount--;
+                    map[player.y][player.x] = 1;
+                }
+
+                // check for game cons
+                if (player.lives <= 0) {
+                    gameState = GAME_OVER; 
+                }
+                if (pelletCount == 0) {
+                    gameState = GAME_WIN; 
+                }
+
+                sfClock_restart(clock);
+            }
         }
-            
+        
+        
         // Clear window
         sfRenderWindow_clear(window, sfBlack);
         
@@ -356,15 +366,15 @@ int main() {
             for (int x = 0; x < WIDTH; x++) {
                 int value = map[y][x];
                 if (value == 4) {
-                    sfRectangleShape_setPosition(wall, (sfVector2f){x * SCALE, y * SCALE});
+                    sfRectangleShape_setPosition(wall, (sfVector2f){x * SCALE, (y+2) * SCALE});
                     sfRenderWindow_drawRectangleShape(window, wall, NULL);
                 }
                 else if (value == 3) {
-                    sfCircleShape_setPosition(powerup, (sfVector2f){x * SCALE + SCALE / 2 - sfCircleShape_getRadius(powerup), y * SCALE + SCALE / 2 - sfCircleShape_getRadius(powerup)});
+                    sfCircleShape_setPosition(powerup, (sfVector2f){x * SCALE + SCALE / 2 - sfCircleShape_getRadius(powerup), (y+2) * SCALE + SCALE / 2 - sfCircleShape_getRadius(powerup)});
                     sfRenderWindow_drawCircleShape(window, powerup, NULL);
                 }
                 else if (value == 2) {
-                    sfCircleShape_setPosition(pellet, (sfVector2f){x * SCALE + SCALE / 2 - sfCircleShape_getRadius(pellet), y * SCALE + SCALE / 2 - sfCircleShape_getRadius(pellet)});
+                    sfCircleShape_setPosition(pellet, (sfVector2f){x * SCALE + SCALE / 2 - sfCircleShape_getRadius(pellet), (y+ 2) * SCALE + SCALE / 2 - sfCircleShape_getRadius(pellet)});
                     sfRenderWindow_drawCircleShape(window, pellet, NULL);
                 }
             }
@@ -372,9 +382,9 @@ int main() {
 
         if (gameState != GAME_START) {
             //Draw Pac Man
-            sfCircleShape_setPosition(pacmanBody, (sfVector2f){player.x * SCALE, player.y * SCALE});
+            sfCircleShape_setPosition(pacmanBody, (sfVector2f){player.x * SCALE, (player.y + 2) * SCALE});
             sfRenderWindow_drawCircleShape(window, pacmanBody, NULL);
-            sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, player.y * SCALE + SCALE / 2});
+            sfConvexShape_setPosition(pacmanMouth, (sfVector2f){player.x * SCALE + SCALE / 2, (player.y + 2) * SCALE + SCALE / 2});
             sfConvexShape_setRotation(pacmanMouth, 90 * player.direction);
             if (player.x % 2 == player.y % 2) {sfRenderWindow_drawConvexShape(window, pacmanMouth, NULL);}
 
@@ -396,30 +406,30 @@ int main() {
                 default:
                     break;
                 }
-                sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE});
+                sfConvexShape_setPosition(ghostBody, (sfVector2f){ghosts[i].x * SCALE, (ghosts[i].y + 2) * SCALE});
                 sfRenderWindow_drawConvexShape(window, ghostBody, NULL);
-                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE / 6});
+                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE, (ghosts[i].y + 2) * SCALE + SCALE / 6});
                 sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
-                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE + SCALE / 2, ghosts[i].y * SCALE + SCALE / 6});
+                sfCircleShape_setPosition(ghostEye, (sfVector2f){ghosts[i].x * SCALE + SCALE / 2, (ghosts[i].y+2) * SCALE + SCALE / 6});
                 sfRenderWindow_drawCircleShape(window, ghostEye, NULL);
                 sfVector2f leftEyeDirection;
                 sfVector2f rightEyeDirection;
                 switch(ghosts[i].direction) {
                     case 0:
-                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.3, ghosts[i].y * SCALE + SCALE * 0.3};
-                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.8, ghosts[i].y * SCALE + SCALE * 0.3};
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.3, (ghosts[i].y + 2) * SCALE + SCALE * 0.3};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.8, (ghosts[i].y + 2) * SCALE + SCALE * 0.3};
                         break;
                     case 1:
-                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.45};
-                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.45};
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, (ghosts[i].y + 2) * SCALE + SCALE * 0.45};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, (ghosts[i].y + 2) * SCALE + SCALE * 0.45};
                         break;
                     case 2:
-                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE, ghosts[i].y * SCALE + SCALE * 0.3};
-                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.5, ghosts[i].y * SCALE + SCALE * 0.3};
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE, (ghosts[i].y + 2) * SCALE + SCALE * 0.3};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.5, (ghosts[i].y + 2) * SCALE + SCALE * 0.3};
                         break;
                     default:
-                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, ghosts[i].y * SCALE + SCALE * 0.15};
-                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, ghosts[i].y * SCALE + SCALE * 0.15};
+                        leftEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.15, (ghosts[i].y + 2) * SCALE + SCALE * 0.15};
+                        rightEyeDirection = (sfVector2f){ghosts[i].x * SCALE + SCALE * 0.65, (ghosts[i].y + 2) * SCALE + SCALE * 0.15};
                         break;
                 }
                 sfCircleShape_setPosition(ghostPupil, leftEyeDirection);
@@ -428,7 +438,109 @@ int main() {
                 sfRenderWindow_drawCircleShape(window, ghostPupil, NULL);
             }
         }
-    
+
+        // UI based on game state
+        char scoreText[50];
+        sprintf(scoreText, "Score: %d   Lives: %d", player.score, player.lives);
+        sfText_setString(messageText, scoreText);
+
+        // Center score text
+        sfFloatRect scoreBounds = sfText_getLocalBounds(messageText);
+        sfVector2f scorePos = {
+            (WIDTH * SCALE - scoreBounds.width) / 2,
+            SCALE / 2
+        };
+        sfText_setPosition(messageText, scorePos);
+        sfRenderWindow_drawText(window, messageText, NULL);
+
+        // message backing rectangle
+        sfRectangleShape* messageBg = sfRectangleShape_create();
+        sfRectangleShape_setFillColor(messageBg, (sfColor){0, 0, 0, 200});
+        sfRectangleShape_setOutlineThickness(messageBg, 2.0f);
+        sfRectangleShape_setOutlineColor(messageBg, sfBlue);
+        
+        switch (gameState) {
+            case GAME_START:
+                sfText_setString(messageText, "PACMAN\nPress SPACE\nto start");
+
+                //calc bounds for centering
+                sfFloatRect textBounds = sfText_getLocalBounds(messageText);
+                sfVector2f centerPos = {
+                    (WIDTH * SCALE - textBounds.width) / 2,
+                    ((HEIGHT + 2) * SCALE - textBounds.height) / 2 - 20 
+                };
+                sfText_setPosition(messageText, centerPos);
+
+                // set backing rectangle
+                sfRectangleShape_setSize(messageBg, (sfVector2f){textBounds.width + 40, textBounds.height + 40});
+                sfRectangleShape_setPosition(messageBg, (sfVector2f){centerPos.x - 20, centerPos.y - 10});
+
+                //draw the backing and text
+                sfRenderWindow_drawRectangleShape(window, messageBg, NULL);
+                sfRenderWindow_drawText(window, messageText, NULL);
+                break;
+                
+            case GAME_PAUSED:
+                sfText_setString(messageText, "PAUSED\nPress SPACE\nto continue");
+
+                textBounds = sfText_getLocalBounds(messageText);
+                centerPos = (sfVector2f){
+                    (WIDTH * SCALE - textBounds.width) / 2,
+                    ((HEIGHT + 2) * SCALE - textBounds.height) / 2 - 20
+                };
+                sfText_setPosition(messageText, centerPos);
+                
+                sfRectangleShape_setSize(messageBg, (sfVector2f){textBounds.width + 40, textBounds.height + 40});
+                sfRectangleShape_setPosition(messageBg, (sfVector2f){centerPos.x - 20, centerPos.y - 10}); 
+
+                sfRenderWindow_drawRectangleShape(window, messageBg, NULL);
+                sfRenderWindow_drawText(window, messageText, NULL);
+                break;
+                
+            case GAME_OVER:
+                sfText_setString(messageText, "GAME OVER\nPress SPACE\nto restart");
+
+                textBounds = sfText_getLocalBounds(messageText);
+                centerPos = (sfVector2f){
+                    (WIDTH * SCALE - textBounds.width) / 2,
+                    ((HEIGHT + 2) * SCALE - textBounds.height) / 2 - 20
+                };
+                sfText_setPosition(messageText, centerPos);
+                
+                // special backing color and outline for game over
+                sfRectangleShape_setFillColor(messageBg, (sfColor){0, 0, 0, 220}); 
+                sfRectangleShape_setOutlineColor(messageBg, sfRed); 
+                sfRectangleShape_setSize(messageBg, (sfVector2f){textBounds.width + 40, textBounds.height + 40});
+                sfRectangleShape_setPosition(messageBg, (sfVector2f){centerPos.x - 20, centerPos.y - 10});
+                
+                sfRenderWindow_drawRectangleShape(window, messageBg, NULL);
+                sfRenderWindow_drawText(window, messageText, NULL);
+                break;
+                
+            case GAME_WIN:
+                sfText_setString(messageText, "YOU WIN!\nPress SPACE\nto play again");
+
+                textBounds = sfText_getLocalBounds(messageText);
+                centerPos = (sfVector2f){
+                    (WIDTH * SCALE - textBounds.width) / 2,
+                    ((HEIGHT + 2) * SCALE - textBounds.height) / 2 - 20
+                };
+                sfText_setPosition(messageText, centerPos);
+                
+                /// special backing
+                sfRectangleShape_setFillColor(messageBg, (sfColor){0, 0, 0, 220});
+                sfRectangleShape_setOutlineColor(messageBg, sfGreen); // Green outline for win
+                sfRectangleShape_setSize(messageBg, (sfVector2f){textBounds.width + 40, textBounds.height + 40});
+                sfRectangleShape_setPosition(messageBg, (sfVector2f){centerPos.x - 20, centerPos.y - 10});
+                
+                sfRenderWindow_drawRectangleShape(window, messageBg, NULL);
+                sfRenderWindow_drawText(window, messageText, NULL);
+                break;
+                
+            default:
+                break;
+        }
+        sfRectangleShape_destroy(messageBg);
 
         // Update window
         sfRenderWindow_display(window);
@@ -438,5 +550,9 @@ int main() {
             sfRenderWindow_close(window);
         }
     }
+
+    sfFont_destroy(font);
+    sfText_destroy(messageText);
+
     return 0;
 }
