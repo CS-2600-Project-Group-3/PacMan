@@ -40,7 +40,7 @@ void moveGhost(struct Ghost *ghost, struct Map *gameMap)
   int validDirs[3] = {-1, 0, 1}; // -1 = left, 0 = straight, 1 = right
   int numValidDirs = 3;
 
-  // Populate validDirs (check if directions are valid based on walls)
+  // Remove invalid directions (check if directions are invalid based on walls)
   for (int j = numValidDirs - 1; j >= 0; j--) {
     if (gameMap->map[getNextY(rotate(ghost->direction, validDirs[j]), ghost->y)][getNextX(rotate(ghost->direction, validDirs[j]), ghost->x)] == 4) {
       validDirs[j] = validDirs[numValidDirs - 1];
