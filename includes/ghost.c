@@ -37,27 +37,22 @@ int rotate(int direction, int clockwiseSteps) {
 
 void moveGhost(struct Ghost *ghost, struct Map *gameMap) 
 {
-  int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
-  int numValidDirs = 0;
+  int validDirs[3] = {-1, 0, 1}; // -1 = left, 0 = straight, 1 = right
+  int numValidDirs = 3;
 
   // Populate validDirs (check if directions are valid based on walls)
-  for (int j = 0; j < 3; j++) {
-    if (gameMap->map[getNextY(rotate(ghost->direction, j - 1), ghost->y)][getNextX(rotate(ghost->direction, j - 1), ghost->x)] != 4) {
-      validDirs[numValidDirs] = j - 1;
-      numValidDirs++;
+  for (int j = numValidDirs - 1; j >= 0; j--) {
+    if (gameMap->map[getNextY(rotate(ghost->direction, validDirs[j]), ghost->y)][getNextX(rotate(ghost->direction, validDirs[j]), ghost->x)] == 4) {
+      validDirs[j] = validDirs[numValidDirs - 1];
+      numValidDirs--;
     }
   }
 
-  // If left and right side have walls
-  if (gameMap->map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
-    gameMap->map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
-
-      // If front has a wall, turn around
-    if (gameMap->map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
-      ghost->direction = rotate(ghost->direction, 2); // Turn around
-    }
+  // If ghost at dead end
+  if (numValidDirs == 0) {
+    ghost->direction = rotate(ghost->direction, 2); // Turn around
   }
-  // Else pick a random valid direction at an intersection
+  // If ghost at an intersection / hallway
   else if (numValidDirs > 0) {
     ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
   }
