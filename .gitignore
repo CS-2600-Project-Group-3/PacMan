@@ -6,4 +6,5 @@ test
 .DS_Store
 *.exe
 *.dll
+*.o
 makefile
