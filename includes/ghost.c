@@ -52,8 +52,12 @@ void moveGhost(struct Ghost *ghost, struct Map *gameMap)
   if (numValidDirs == 0) {
     ghost->direction = rotate(ghost->direction, 2); // Turn around
   }
-  // If ghost at an intersection / hallway
-  else if (numValidDirs > 0) {
+  // If ghost in hallway
+  else if (numValidDirs == 1) {
+    ghost->direction = rotate(ghost->direction, validDirs[0]);
+  }
+  // If ghost at an intersection
+  else if (numValidDirs > 1) {
     ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
   }
 
