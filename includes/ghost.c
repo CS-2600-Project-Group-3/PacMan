@@ -1,4 +1,7 @@
 #include "ghost.h"
+#include<unistd.h>
+
+int ms = 10000; //delay for 10,000 miliseconds
 
 struct GhostBody makeBody()
 {
@@ -32,32 +35,36 @@ int getNextY(int direction, int y) {
 }
 
 int rotate(int direction, int clockwiseSteps) {
-    return (4 + direction + clockwiseSteps) % 4;
+  return (4 + direction + clockwiseSteps) % 4;
 }
 
 void moveGhost(struct Ghost *ghost, struct Map *gameMap) 
 {
-  int validDirs[3] = {-1, 0, 1}; // -1 = left, 0 = straight, 1 = right
-  int numValidDirs = 3;
+  int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
+  int numValidDirs = 0;
 
-  // Remove invalid directions (check if directions are invalid based on walls)
-  for (int j = numValidDirs - 1; j >= 0; j--) {
-    if (gameMap->map[getNextY(rotate(ghost->direction, validDirs[j]), ghost->y)][getNextX(rotate(ghost->direction, validDirs[j]), ghost->x)] == 4) {
-      validDirs[j] = validDirs[numValidDirs - 1];
-      numValidDirs--;
+  // Populate validDirs (check if directions are valid based on walls)
+  for (int j = 0; j < 3; j++) {
+    if (gameMap->map[getNextY(rotate(ghost->direction, j - 1), ghost->y)][getNextX(rotate(ghost->direction, j - 1), ghost->x)] != 4) {
+      //usleep(ms);
+      validDirs[numValidDirs] = j - 1;
+      numValidDirs++;
     }
   }
 
-  // If ghost at dead end
-  if (numValidDirs == 0) {
-    ghost->direction = rotate(ghost->direction, 2); // Turn around
+  // If left and right side have walls
+  if (gameMap->map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
+    gameMap->map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
+    usleep(ms);
+      // If front has a wall, turn around
+    if (gameMap->map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
+      usleep(ms);
+      ghost->direction = rotate(ghost->direction, 2); // Turn around
+    }
   }
-  // If ghost in hallway
-  else if (numValidDirs == 1) {
-    ghost->direction = rotate(ghost->direction, validDirs[0]);
-  }
-  // If ghost at an intersection
-  else if (numValidDirs > 1) {
+  // Else pick a random valid direction at an intersection
+  else if (numValidDirs > 0) {
+    usleep(ms);
     ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
   }
 
@@ -106,19 +113,27 @@ void drawGhost(sfRenderWindow *window, struct Ghost ghost, struct GhostBody ghos
     switch(ghost.direction) {
         case 0:
             leftEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.3, (ghost.y + 2) * SCALE + SCALE * 0.3};
+	    usleep(ms);
             rightEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.8, (ghost.y + 2) * SCALE + SCALE * 0.3};
+	    usleep(ms);
             break;
         case 1:
             leftEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.15, (ghost.y + 2) * SCALE + SCALE * 0.45};
+	    usleep(ms);
             rightEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.65, (ghost.y + 2) * SCALE + SCALE * 0.45};
+	    usleep(ms);
             break;
         case 2:
             leftEyeDirection = (sfVector2f){ghost.x * SCALE, (ghost.y + 2) * SCALE + SCALE * 0.3};
+	    usleep(ms);
             rightEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.5, (ghost.y + 2) * SCALE + SCALE * 0.3};
+	    usleep(ms);
             break;
         default:
             leftEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.15, (ghost.y + 2) * SCALE + SCALE * 0.15};
+	    usleep(ms);
             rightEyeDirection = (sfVector2f){ghost.x * SCALE + SCALE * 0.65, (ghost.y + 2) * SCALE + SCALE * 0.15};
+	    usleep(ms);
             break;
     }
     sfCircleShape_setPosition(ghostBody.pupil, leftEyeDirection);
