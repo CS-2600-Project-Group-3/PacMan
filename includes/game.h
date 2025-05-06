@@ -24,7 +24,7 @@ void handleEvent(sfRenderWindow *window, sfEvent event, enum GameState *gameStat
 
 void drawGameMap(sfRenderWindow *window, struct Map *map, struct Ghost ghosts[], struct GhostBody ghostBodies[],  struct Pacman player, int state);
 void drawMessage(sfRenderWindow *window, sfText *messageText, sfRectangleShape *messageBg, const char *text, sfColor bgColor, sfColor outlineColor, float offsetX, float offsetY);
-void drawUI(sfRenderWindow *window, sfText *messageText, int gameState, int score, int lives);
+void drawUI(sfRenderWindow *window, sfText *messageText, int gameState, int score, int lives, struct Pacman *player);
 
 void move(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize, struct Map* map, int* pelletCount);
 int isCollison(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize);

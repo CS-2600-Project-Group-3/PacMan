@@ -37,11 +37,11 @@ int main()
         }
         
         drawGameMap(window, &gameMap, ghosts, ghostBodies, player, gameState);  // draw map
-        drawUI(window, messageText, gameState, player.score, player.lives);     // UI based on game state
+        drawUI(window, messageText, gameState, player.score, player.lives, &player);     // UI based on game state
             
         if (pelletCount == 0)  // Check for game end
         { 
-            sfRenderWindow_close(window);
+            gameState = GAME_WIN;
         }
     }
     cleanup(window, clock, &gameMap, messageText, font, ghostBodies);  // Cleanup (deallocate resources)

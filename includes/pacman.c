@@ -9,6 +9,8 @@ struct Pacman initPacman()
   pacman.direction = 1; // Down
   pacman.lives = 3;
   pacman.score = 0;
+  pacman.powerUpActive = 0;
+  pacman.powerUpTimer = 0;
 
   // Create Pacman body
   pacman.body = sfCircleShape_create();
@@ -63,7 +65,8 @@ void resetPacman(struct Pacman *pacman)
   pacman->x = 9;
   pacman->y = 16;
   pacman->direction = 1; 
-  pacman->score = 0;
+  pacman->powerUpActive = 0;
+  pacman->powerUpTimer = 0;
 }
 
 void drawPacman(sfRenderWindow *window, struct Pacman player) 

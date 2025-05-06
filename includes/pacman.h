@@ -10,6 +10,8 @@ struct Pacman {
     int direction; // 0 = right, 1 = down, 2 = left, 3 = up
     int lives;
     int score;
+    int powerUpActive; // 0 = not active, 1 = active
+    int powerUpTimer;
     sfCircleShape *body;
     sfConvexShape *mouth;
 };

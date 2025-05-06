@@ -79,28 +79,34 @@ void resetGhosts(struct Ghost ghosts[])
   ghosts[1] = (struct Ghost){8, 10, 0, 0, 'b'};
   ghosts[2] = (struct Ghost){9, 10, 0, 0, 'p'};
   ghosts[3] = (struct Ghost){10, 10, 0, 0, 'o'};
-
 }
 
 void drawGhost(sfRenderWindow *window, struct Ghost ghost, struct GhostBody ghostBody)
 {
-  switch (ghost.color) 
-  {
-    case 'r':
-        sfConvexShape_setFillColor(ghostBody.body, sfRed);
-        break;
-    case 'b':
-        sfConvexShape_setFillColor(ghostBody.body, (sfColor){144, 213, 255, 255});
-        break;
-    case 'p':
-        sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 182, 193, 255});
-        break;
-    case 'o':
-        sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 165, 0, 255});
-        break;
-    default:
-        break;
-    }
+  //ghost color based on status
+  if (ghost.status == 1) { //afraid state: blue 
+      sfConvexShape_setFillColor(ghostBody.body, (sfColor){0, 0, 255, 255});
+  } else if (ghost.status == 2) { //running: white
+      sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 255, 255, 255});
+  } else { //normal
+      switch (ghost.color) 
+      {
+        case 'r':
+            sfConvexShape_setFillColor(ghostBody.body, sfRed);
+            break;
+        case 'b':
+            sfConvexShape_setFillColor(ghostBody.body, (sfColor){144, 213, 255, 255});
+            break;
+        case 'p':
+            sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 182, 193, 255});
+            break;
+        case 'o':
+            sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 165, 0, 255});
+            break;
+        default:
+            break;
+      }
+  }
 
     sfConvexShape_setPosition(ghostBody.body, (sfVector2f){ghost.x * SCALE, (ghost.y + 2) * SCALE});
     sfRenderWindow_drawConvexShape(window, ghostBody.body, NULL);
