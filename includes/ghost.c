@@ -40,37 +40,78 @@ int rotate(int direction, int clockwiseSteps) {
 
 void moveGhost(struct Ghost *ghost, struct Map *gameMap) 
 {
-  int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
-  int numValidDirs = 0;
+    // Handle ghost returning to center (status == 2)
+    if (ghost->status == 2) 
+    {
+        int targetX = 9;
+        int targetY = 10;
+        // Step towards home (center)
+        if (ghost->x < targetX) ghost->x++;
+        else if (ghost->x > targetX) ghost->x--;
 
-  // Populate validDirs (check if directions are valid based on walls)
-  for (int j = 0; j < 3; j++) {
-    if (gameMap->map[getNextY(rotate(ghost->direction, j - 1), ghost->y)][getNextX(rotate(ghost->direction, j - 1), ghost->x)] != 4) {
-      //usleep(ms);
-      validDirs[numValidDirs] = j - 1;
-      numValidDirs++;
+        if (ghost->y < targetY) ghost->y++;
+        else if (ghost->y > targetY) ghost->y--;
+
+        //  // Try moving horizontally toward target first
+        // if (ghost->x < targetX && gameMap->map[ghost->y][ghost->x + 1] != WALL) {
+        //     ghost->x++;
+        // }
+        // else if (ghost->x > targetX && gameMap->map[ghost->y][ghost->x - 1] != WALL) {
+        //     ghost->x--;
+        // }
+        // // If horizontal move blocked or not needed, try vertical
+        // else if (ghost->y < targetY && gameMap->map[ghost->y + 1][ghost->x] != WALL) {
+        //     ghost->y++;
+        // }
+        // else if (ghost->y > targetY && gameMap->map[ghost->y - 1][ghost->x] != WALL) {
+        //     ghost->y--;
+        // }
+        // else if(gameMap->map[ghost->y - 1][ghost->x] == WALL || gameMap->map[ghost->y + 1][ghost->x] == WALL)
+        // {
+        //   if(ghost->x < targetX) ghost->x++;
+        //   else if(ghost->x > targetX) ghost->x--;
+        // }
+        // else if(gameMap->map[ghost->y][ghost->x + 1] == WALL || gameMap->map[ghost->y][ghost->x - 1] == WALL)
+        // {
+        //   if(ghost->y < targetY) ghost->y++;
+        //   else if(ghost->y > targetY) ghost->y--;
+        // }
+
+        // Once at center, begin countdown
+        if (ghost->x == targetX && ghost->y == targetY) 
+        {
+          ghost->status = 0;
+        }
+        return; // Don't run normal movement
     }
-  }
 
-  // If left and right side have walls
-  if (gameMap->map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
-    gameMap->map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
-    usleep(ms);
-      // If front has a wall, turn around
-    if (gameMap->map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4) {
-      usleep(ms);
-      ghost->direction = rotate(ghost->direction, 2); // Turn around
+    // Regular ghost movement (status != 2)
+    int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
+    int numValidDirs = 0;
+
+    for (int j = 0; j < 3; j++) {
+        int dir = rotate(ghost->direction, j - 1);
+        int nextX = getNextX(dir, ghost->x);
+        int nextY = getNextY(dir, ghost->y);
+        if (gameMap->map[nextY][nextX] != WALL) { // not a wall
+            validDirs[numValidDirs++] = j - 1;
+        }
     }
-  }
-  // Else pick a random valid direction at an intersection
-  else if (numValidDirs > 0) {
-    usleep(ms);
-    ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
-  }
 
-  // Move ghost
-  ghost->x = getNextX(ghost->direction, ghost->x);
-  ghost->y = getNextY(ghost->direction, ghost->y);
+    // Dead-end: turn around
+    if (gameMap->map[getNextY(ghost->direction, ghost->y)][getNextX(ghost->direction, ghost->x)] == 4 &&
+        gameMap->map[getNextY(rotate(ghost->direction, 1), ghost->y)][getNextX(rotate(ghost->direction, 1), ghost->x)] == 4 &&
+        gameMap->map[getNextY(rotate(ghost->direction, -1), ghost->y)][getNextX(rotate(ghost->direction, -1), ghost->x)] == 4) {
+        ghost->direction = rotate(ghost->direction, 2);
+    }
+    // Intersection: choose valid direction
+    else if (numValidDirs > 0) {
+        ghost->direction = rotate(ghost->direction, validDirs[rand() % numValidDirs]);
+    }
+
+    // Move ghost
+    ghost->x = getNextX(ghost->direction, ghost->x);
+    ghost->y = getNextY(ghost->direction, ghost->y);
 }
 
 void resetGhosts(struct Ghost ghosts[])
@@ -83,33 +124,34 @@ void resetGhosts(struct Ghost ghosts[])
 
 void drawGhost(sfRenderWindow *window, struct Ghost ghost, struct GhostBody ghostBody)
 {
-  //ghost color based on status
-  if (ghost.status == 1) { //afraid state: blue 
-      sfConvexShape_setFillColor(ghostBody.body, (sfColor){0, 0, 255, 255});
-  } else if (ghost.status == 2) { //running: white
-      sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 255, 255, 255});
-  } else { //normal
-      switch (ghost.color) 
-      {
-        case 'r':
-            sfConvexShape_setFillColor(ghostBody.body, sfRed);
-            break;
-        case 'b':
-            sfConvexShape_setFillColor(ghostBody.body, (sfColor){144, 213, 255, 255});
-            break;
-        case 'p':
-            sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 182, 193, 255});
-            break;
-        case 'o':
-            sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 165, 0, 255});
-            break;
-        default:
-            break;
+    if(ghost.status != 2)  // only draw eyes if running
+    {
+      //ghost color based on status
+      if (ghost.status == 1) { //afraid state: blue 
+          sfConvexShape_setFillColor(ghostBody.body, (sfColor){0, 0, 255, 255});
+      } else { //normal
+          switch (ghost.color) 
+          {
+            case 'r':
+                sfConvexShape_setFillColor(ghostBody.body, sfRed);
+                break;
+            case 'b':
+                sfConvexShape_setFillColor(ghostBody.body, (sfColor){144, 213, 255, 255});
+                break;
+            case 'p':
+                sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 182, 193, 255});
+                break;
+            case 'o':
+                sfConvexShape_setFillColor(ghostBody.body, (sfColor){255, 165, 0, 255});
+                break;
+            default:
+                break;
+          }
       }
-  }
-
-    sfConvexShape_setPosition(ghostBody.body, (sfVector2f){ghost.x * SCALE, (ghost.y + 2) * SCALE});
-    sfRenderWindow_drawConvexShape(window, ghostBody.body, NULL);
+      sfConvexShape_setPosition(ghostBody.body, (sfVector2f){ghost.x * SCALE, (ghost.y + 2) * SCALE});
+      sfRenderWindow_drawConvexShape(window, ghostBody.body, NULL);
+    }
+  
     sfCircleShape_setPosition(ghostBody.eye, (sfVector2f){ghost.x * SCALE, (ghost.y + 2) * SCALE + SCALE / 6});
     sfRenderWindow_drawCircleShape(window, ghostBody.eye, NULL);
     sfCircleShape_setPosition(ghostBody.eye, (sfVector2f){ghost.x * SCALE + SCALE / 2, (ghost.y+2) * SCALE + SCALE / 6});

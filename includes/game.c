@@ -24,33 +24,18 @@ int isCollison(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize)
 void move(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize, struct Map *map, int* pelletCount)
 {
     //decrement powerup timer
-    if (pacman->powerUpActive) {
+    if (pacman->powerUpActive) 
+    {
         pacman->powerUpTimer--;
-        if (pacman->powerUpTimer <= 0) {
+        if (pacman->powerUpTimer <= 0) 
+        {
             pacman->powerUpActive = 0;
-            //reset ghosts to aggro after end
-            for (int i = 0; i < ghostSize; i++) {
-                if (ghosts[i].status == 1) { //only change afraid ghosts
+            for (int i = 0; i < ghostSize; i++)  //reset ghosts to aggro after end
+            {
+                // if (ghosts[i].status == 1)  //only change afraid ghosts
+                // { 
                     ghosts[i].status = 0;
-                }
-            }
-        }
-    }
-    
-    //ghost suspension & state
-    for (int i = 0; i < ghostSize; i++) {
-        if (ghosts[i].status == 2) { // Running state
-            //decrement suspension timer (stored in direction temporarily)
-            ghosts[i].direction--;
-            if (ghosts[i].direction <= 0) {
-                ghosts[i].status = 0;
-                //reset ghost pos
-                switch(i) {
-                    case 0: ghosts[i].x = 9; ghosts[i].y = 9; break;
-                    case 1: ghosts[i].x = 8; ghosts[i].y = 10; break;
-                    case 2: ghosts[i].x = 9; ghosts[i].y = 10; break;
-                    case 3: ghosts[i].x = 10; ghosts[i].y = 10; break;
-                }
+                // }
             }
         }
     }
@@ -58,38 +43,43 @@ void move(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize, struct Ma
     movePacman(pacman, map);  // move pacman
     
     int collision = isCollison(pacman, ghosts, ghostSize);
-    if (collision == 1) { // Check if pac-man is on an aggro ghost (before moving ghosts)
+    if (collision == 1)  // Check if pac-man is on an aggro ghost (before moving ghosts)
+    { 
         pacman->lives--;
         resetPacman(pacman);
         resetGhosts(ghosts);
     } else if (collision == 2) { //hit afraid ghost
-        for (int i = 0; i < ghostSize; i++) {
-            if (pacman->x == ghosts[i].x && pacman->y == ghosts[i].y && ghosts[i].status == 1) {
+        for (int i = 0; i < ghostSize; i++) 
+        {
+            if (pacman->x == ghosts[i].x && pacman->y == ghosts[i].y && ghosts[i].status == 1) 
+            {
                 ghosts[i].status = 2;
+                ghosts[i].direction = 50;  // or use this as suspension/respawn delay
                 //store suspension timer (50tick== 5 sec)
-                ghosts[i].direction = 50;
                 pacman->score += 200;
                 break;
             }
         }
     }
-    
 
-    for (int i = 0; i < ghostSize; i++) {
-        //dont move ghost in state 2
-        if (ghosts[i].status != 2) {
-            moveGhost(&ghosts[i], map);
-        }
+    for (int i = 0; i < ghostSize; i++) 
+    {
+        moveGhost(&ghosts[i], map);
     }
     
     collision = isCollison(pacman, ghosts, ghostSize); // Check if pac-man is on a ghost (after moving ghosts)
-    if (collision == 1) { 
+    if (collision == 1) 
+    { 
         pacman->lives--;
         resetPacman(pacman);
         resetGhosts(ghosts);
-    } else if (collision == 2) { 
-        for (int i = 0; i < ghostSize; i++) {
-            if (pacman->x == ghosts[i].x && pacman->y == ghosts[i].y && ghosts[i].status == 1) {
+    } 
+    else if (collision == 2) 
+    { 
+        for (int i = 0; i < ghostSize; i++) 
+        {
+            if (pacman->x == ghosts[i].x && pacman->y == ghosts[i].y && ghosts[i].status == 1) 
+            {
                 //set running
                 ghosts[i].status = 2;
                 ghosts[i].direction = 50;
@@ -98,7 +88,6 @@ void move(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize, struct Ma
             }
         }
     }
-
     
     if (map->map[pacman->y][pacman->x] == REGULAR_PELLET || map->map[pacman->y][pacman->x] == POWER_PELLET)  //Check if pac-man is on a pellet or powerup
     {
@@ -136,7 +125,6 @@ void drawGameMap(sfRenderWindow *window, struct Map *map, struct Ghost ghosts[],
             drawGhost(window, ghosts[i], ghostBodies[i]);
         }
     }
-
 }
 
 void drawMessage(sfRenderWindow *window, sfText *messageText, sfRectangleShape *messageBg, const char *text, sfColor bgColor, sfColor outlineColor, float offsetX, float offsetY) {
@@ -239,7 +227,6 @@ void cleanup(sfRenderWindow *window, sfClock *clock, struct Map *gameMap, sfText
     }
 }
 
-
 sfRenderWindow* initWindow() 
 {
     sfVideoMode mode = {WIDTH * SCALE, (HEIGHT + 2) * SCALE, 32};
@@ -247,7 +234,6 @@ sfRenderWindow* initWindow()
     sfRenderWindow_setFramerateLimit(window, 60);
     return window;
 }
-
 
 sfFont* initFont() {
     return sfFont_createFromFile("resources/fonts/slkscr.ttf");

@@ -11,7 +11,6 @@ struct Ghost {
     int direction; // 0 = right, 1 = down, 2 = left, 3 = up
     int status; // 0 = aggressive, 1 = afraid, 2 = running
     char color; // r = red, b = blue, p = pink, o = orange
-  
 };
 
 struct GhostBody {
