@@ -38,53 +38,84 @@ int rotate(int direction, int clockwiseSteps) {
   return (4 + direction + clockwiseSteps) % 4;
 }
 
-void moveGhost(struct Ghost *ghost, struct Map *gameMap) 
+int bfs(struct Map *gameMap, int startX, int startY, int targetX, int targetY, Position *path) 
 {
-    // Handle ghost returning to center (status == 2)
-    if (ghost->status == 2) 
+  bool visited[HEIGHT][WIDTH] = {false};
+  Position queue[WIDTH * HEIGHT];
+  Position prev[HEIGHT][WIDTH];
+  int front = 0, rear = 0;
+
+  queue[rear++] = (Position){startX, startY};
+  visited[startY][startX] = true;
+  prev[startY][startX] = (Position){-1, -1};
+
+  bool found = false;
+
+  while (front < rear) 
+  {
+    Position current = queue[front++];
+    if (current.x == targetX && current.y == targetY) 
     {
-        int targetX = 9;
-        int targetY = 10;
-        // Step towards home (center)
-        if (ghost->x < targetX) ghost->x++;
-        else if (ghost->x > targetX) ghost->x--;
-
-        if (ghost->y < targetY) ghost->y++;
-        else if (ghost->y > targetY) ghost->y--;
-
-        //  // Try moving horizontally toward target first
-        // if (ghost->x < targetX && gameMap->map[ghost->y][ghost->x + 1] != WALL) {
-        //     ghost->x++;
-        // }
-        // else if (ghost->x > targetX && gameMap->map[ghost->y][ghost->x - 1] != WALL) {
-        //     ghost->x--;
-        // }
-        // // If horizontal move blocked or not needed, try vertical
-        // else if (ghost->y < targetY && gameMap->map[ghost->y + 1][ghost->x] != WALL) {
-        //     ghost->y++;
-        // }
-        // else if (ghost->y > targetY && gameMap->map[ghost->y - 1][ghost->x] != WALL) {
-        //     ghost->y--;
-        // }
-        // else if(gameMap->map[ghost->y - 1][ghost->x] == WALL || gameMap->map[ghost->y + 1][ghost->x] == WALL)
-        // {
-        //   if(ghost->x < targetX) ghost->x++;
-        //   else if(ghost->x > targetX) ghost->x--;
-        // }
-        // else if(gameMap->map[ghost->y][ghost->x + 1] == WALL || gameMap->map[ghost->y][ghost->x - 1] == WALL)
-        // {
-        //   if(ghost->y < targetY) ghost->y++;
-        //   else if(ghost->y > targetY) ghost->y--;
-        // }
-
-        // Once at center, begin countdown
-        if (ghost->x == targetX && ghost->y == targetY) 
-        {
-          ghost->status = 0;
-        }
-        return; // Don't run normal movement
+      found = true;
+      break;
     }
 
+    int dx[] = {0, -1, 1, 0};
+    int dy[] = {-1, 0, 0, 1};
+    for (int i = 0; i < 4; i++) 
+    {
+      int nx = current.x + dx[i];
+      int ny = current.y + dy[i];
+      if (nx >= 0 && ny >= 0 && nx < WIDTH && ny < HEIGHT && !visited[ny][nx] && gameMap->map[ny][nx] != WALL) 
+      {
+        queue[rear++] = (Position){nx, ny};
+        visited[ny][nx] = true;
+        prev[ny][nx] = current;
+      }
+    }
+  }
+  if (!found) return 0;
+
+  // Backtrack to build path
+  int pathLen = 0;
+  for (Position at = (Position){targetX, targetY}; at.x != -1 && at.y != -1; at = prev[at.y][at.x]) 
+  {
+    path[pathLen++] = at;
+  }
+
+  // Reverse path so it starts from start -> target
+  for (int i = 0; i < pathLen / 2; i++) 
+  {
+    Position tmp = path[i];
+    path[i] = path[pathLen - i - 1];
+    path[pathLen - i - 1] = tmp;
+  }
+
+  return pathLen;
+}
+
+void moveGhost(struct Ghost *ghost, struct Map *gameMap) 
+{
+  // Handle ghost returning to center (status == 2)
+  if (ghost->status == 2) 
+  {
+    int targetX = 9;
+    int targetY = 10;
+    Position path[WIDTH * HEIGHT];
+    int pathLen = bfs(gameMap, ghost->x, ghost->y, targetX, targetY, path);
+
+    if (pathLen > 1) 
+    {
+      // Move one step along the path (path[0] is current pos, path[1] is next)
+      ghost->x = path[1].x;
+      ghost->y = path[1].y;
+    }
+    if (ghost->x == targetX && ghost->y == targetY) 
+    {
+      ghost->status = 0;
+    }
+    return;
+  }
     // Regular ghost movement (status != 2)
     int validDirs[3] = {0, 0, 0}; // -1 = left, 0 = straight, 1 = right
     int numValidDirs = 0;

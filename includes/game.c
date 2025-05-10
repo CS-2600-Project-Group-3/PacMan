@@ -32,10 +32,10 @@ void move(struct Pacman *pacman, struct Ghost ghosts[], int ghostSize, struct Ma
             pacman->powerUpActive = 0;
             for (int i = 0; i < ghostSize; i++)  //reset ghosts to aggro after end
             {
-                // if (ghosts[i].status == 1)  //only change afraid ghosts
-                // { 
+                if (ghosts[i].status == 1)  //only change afraid ghosts
+                { 
                     ghosts[i].status = 0;
-                // }
+                }
             }
         }
     }
