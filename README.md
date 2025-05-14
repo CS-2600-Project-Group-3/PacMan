@@ -2,9 +2,18 @@
 
 This is a classic Pacman game implementation in C using the CSFML graphics library. The project was developed as a final assignment for CS 2600.
 
-## Contributors
+## Project Members
 
-- 
+- Elijah Chan
+  - _Github: doom-boy_
+- Josiah Degeneffe
+  - _Github: JosiahD1234_
+- Hope Gomez
+  - _Github: mozarella-td_
+- Natalie Mamikonyan
+  - _Github: Nataliemamikonyan_
+- Athalia Zhou
+  - _Github: zhouAthalia_
 
 ## Implementation Details
 
@@ -19,6 +28,8 @@ The game map is represented using a 2D array where different integer values repr
 
 The map layout is designed to mimic the classic Pacman maze with walls, corridors, and pellets strategically placed throughout the game board.
 
+<br>
+
 ### Graphics Rendering
 
 The game uses CSFML to handle graphics rendering:
@@ -28,6 +39,8 @@ The game uses CSFML to handle graphics rendering:
 - Power-ups are rendered as larger white circles
 - The game window is scaled based on the map dimensions
 
+<br>
+
 ### Game Loop
 
 The main game loop handles:
@@ -35,6 +48,8 @@ The main game loop handles:
 2. Clearing the screen
 3. Drawing the map elements (walls, pellets, power-ups)
 4. Displaying the rendered frame
+
+<br>
 
 ### Hit Detection and Movement
 
@@ -46,7 +61,7 @@ The game implements hit detection and movement using a structured approach:
      - Check the space in front based on current direction
      - If a ghost is there and aggressive, Pac-Man moves and dies
      - If a ghost is there and afraid, Pac-Man moves and the ghost is eaten
-     - If a wall is there (map[x][y] = 5), Pac-Man will not move
+     - If a wall is there, Pac-Man will not move
      - If a pellet is there, Pac-Man moves and eats the pellet
      - If a power-up is there, Pac-Man eats it and ghosts' status changes
   2. For each ghost:
@@ -54,12 +69,16 @@ The game implements hit detection and movement using a structured approach:
      - If Pac-Man is there and the ghost is aggressive, it moves and Pac-Man dies
      - If Pac-Man is there and the ghost is afraid, it moves and gets eaten
 
+<br>
+
 ### User Input
 
 The game captures user input through CSFML:
 
 - Arrow keys change Pac-Man's direction
 - Input is processed each frame to determine Pac-Man's next move
+
+<br>
 
 ### Power-Up System
 
@@ -78,6 +97,8 @@ Power-ups affect ghost behavior through state management:
   - The ghost enters running mode
   - When the ghost reaches home, it becomes aggressive again
 
+<br>
+
 ### Ghost AI
 
 Ghost movement is determined by their current state and the maze structure:
@@ -85,9 +106,9 @@ Ghost movement is determined by their current state and the maze structure:
 - Basic movement rules:
   - If no space exists to the left/right of current direction, move forward
   - At intersections (spaces to left/right):
-    1. Aggressive: Choose an open direction closest to Pac-Man (except backward)
+    1. Aggressive: Choose an open direction (except backward)
        - If multiple directions are equally close, choose randomly
-    2. Afraid: Choose a random open direction
+    2. Afraid: Choose an open direction using a Breadth-First Search Algorithm
     3. Running: Move toward home (similar to aggressive but targeting home)
        - Running ghosts move twice as fast as other ghosts
 
@@ -105,7 +126,7 @@ Developing this Pacman game presented several challenges:
 
 5. **Cross-Platform Compatibility**: Ensuring the game works consistently across different operating systems (Windows and macOS) required platform-specific compilation instructions and careful management of dependencies.
 
-## Building and Running
+## Download Instructions
 
 ### macOS
 
@@ -115,3 +136,6 @@ Developing this Pacman game presented several challenges:
 
 1.
 
+### Ubuntu
+
+1.
