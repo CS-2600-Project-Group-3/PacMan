@@ -130,11 +130,14 @@ Developing this Pacman game presented several challenges:
 
 ### macOS
 
-1.
+1. 
 
 ### Windows
 
-1.
+1. Download the latest release for Windows
+2. Unzip the files
+3. Run the Pacman executable
+4. Enjoy!
 
 ### Ubuntu
 
